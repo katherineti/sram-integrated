@@ -54,7 +54,13 @@ export default function DashboardHeader({ children }: { children?: React.ReactNo
     return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
   };
   
-  const displayName = user ? `${user.firstName} ${user.lastName}` : "Usuario";
+  const getDisplayName = () => {
+    if (!user) return 'Usuario';
+    const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+    return fullName || user.username || 'Usuario';
+  };
+
+  const displayName = getDisplayName();
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">

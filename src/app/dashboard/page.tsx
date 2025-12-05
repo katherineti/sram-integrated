@@ -37,7 +37,14 @@ export default function DashboardPage() {
   const previousMonthName = getPreviousMonthName();
   const currentMonthName = getCurrentMonthName();
   const currentDate = getFormattedDate();
-  const displayName = user ? `${user.firstName} ${user.lastName}` : "Usuario";
+  
+  const getDisplayName = () => {
+    if (!user) return 'Usuario';
+    const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+    return fullName || user.username || 'Usuario';
+  };
+
+  const displayName = getDisplayName();
 
   return (
     <div className="grid gap-8">

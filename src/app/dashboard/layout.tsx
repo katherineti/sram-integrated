@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState }from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/dashboard/Sidebar';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
@@ -8,6 +8,7 @@ import { UserProvider, useUser } from '@/contexts/UserContext';
 import { PanelLeft } from 'lucide-react';
 import PageProgressBar from '@/components/dashboard/PageProgressBar';
 import { ProgressBarProvider } from '@/contexts/ProgressBarContext';
+import { athletes } from '@/lib/mock-data';
 
 
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
@@ -16,32 +17,51 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    // Simula la carga del usuario
     setIsLoading(true);
-    setUser({
-      id: "1",
-      firstName: "Admin",
-      lastName: "Prueba",
-      email: "admin@example.com",
-      role: "admin",
-      photoURL: "https://picsum.photos/seed/123/200/200",
-      cedula: "V-12.345.678",
-      dateOfBirth: new Date(1990, 5, 15),
-      schoolId: "antonio-diaz-dojo",
-      school: "Antonio Díaz Dojo",
-      belt: "Negro",
-      ranking: 1,
-      representedStudents: [
-        { id: 202501, firstName: 'Pedro', lastName: 'Salas' },
-        { id: 202502, firstName: 'Ana', lastName: 'González' }
-      ]
-    });
+    // Recuperar el email del localStorage
+    const storedEmail = localStorage.getItem('userEmail');
+    
+    // Simulación de búsqueda de usuario en mock data
+    const mockUser = athletes.find(a => 
+      `${a.nombres.split(' ')[0].toLowerCase()}.${a.apellidos.split(' ')[0].toLowerCase()}@example.com` === storedEmail
+    );
+    
+    if (storedEmail) {
+      // Extraer el nombre de usuario del email si no hay nombre/apellido
+      const username = storedEmail.split('@')[0];
+      const firstName = mockUser?.nombres || '';
+      const lastName = mockUser?.apellidos || '';
+
+      setUser({
+        id: mockUser?.id.toString() || "1",
+        firstName: firstName,
+        lastName: lastName,
+        username: (firstName || lastName) ? undefined : username,
+        email: storedEmail,
+        role: "admin", // Rol por defecto para la simulación
+        photoURL: mockUser ? `https://picsum.photos/seed/${mockUser.id}/200/200` : "https://picsum.photos/seed/123/200/200",
+        cedula: mockUser?.cedula || "V-12.345.678",
+        dateOfBirth: new Date(1990, 5, 15),
+        schoolId: "antonio-diaz-dojo",
+        school: mockUser?.escuela || "Antonio Díaz Dojo",
+        belt: mockUser?.cinturon ||"Negro",
+        ranking: mockUser?.ranking || 1,
+        representedStudents: [
+          { id: 202501, firstName: 'Pedro', lastName: 'Salas' },
+          { id: 202502, firstName: 'Ana', lastName: 'González' }
+        ]
+      });
+    }
+
     setIsLoading(false);
   }, [setUser, setIsLoading]);
 
   useEffect(() => {
     if (!isLoading && !user) {
-      router.push('/login');
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        router.push('/login');
+      }
     }
   }, [user, isLoading, router]);
 
@@ -92,5 +112,3 @@ export default function DashboardLayout({
     </UserProvider>
   );
 }
-
-    

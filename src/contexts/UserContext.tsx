@@ -7,6 +7,7 @@ interface User {
   id: string | number;
   firstName: string;
   lastName: string;
+  username?: string; // Nombre de usuario derivado del email
   email: string;
   role: "admin" | "master" | "alumno" | "representante";
   photoURL?: string;

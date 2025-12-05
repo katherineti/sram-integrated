@@ -53,6 +53,8 @@ export default function LoginPage() {
         // ** GESTIÓN DEL TOKEN (ÉXITO) **
         // Guardar el token para futuras peticiones (usamos localStorage aquí, aunque cookies HTTP-only es más seguro)
         localStorage.setItem('accessToken', result.access_token); 
+        // Guardamos el email para poder usarlo en el dashboard
+        localStorage.setItem('userEmail', values.email);
 
         toast({
             title: "¡Inicio de Sesión Exitoso!",
