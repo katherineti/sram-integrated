@@ -12,7 +12,9 @@ export default function Home() {
       <EventsAndCompetitions />
       <AboutUs />
       <TopWinners />
-      <SearchSection />
+      <SearchSection searchTerm={''} onSearchChange={function (term: string): void {
+        throw new Error('Function not implemented.');
+      } } />
     </AppLayout>
   );
 }

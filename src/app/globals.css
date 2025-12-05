@@ -93,3 +93,13 @@
     @apply bg-sidebar-background;
   }
 }
+
+/* elimina el icono de N (Nest.js) */
+.nextjs-toast-errors-parent {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    diplay:none;
+}
+nextjs-portal {
+  display: none;
+}

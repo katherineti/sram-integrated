@@ -17,6 +17,10 @@ import {
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
+import { useState } from "react";
+
+// ** IMPORTAR SERVICIO DE AUTENTICACIÓN **
+import { loginUser } from "@/services/auth"; 
 
 const formSchema = z.object({
   email: z.string().email("Por favor, introduce un correo electrónico válido."),
@@ -26,6 +30,7 @@ const formSchema = z.object({
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false); // Estado para el loading
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -36,12 +41,45 @@ export default function LoginPage() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    // Simulate login
-    toast({
-      title: "¡Bienvenido de nuevo!",
-      description: "Has iniciado sesión correctamente (simulación).",
-    });
-    router.push("/dashboard");
+    setIsLoading(true);
+    
+    try {
+        // ** LLAMADA AL SERVICIO DE LOGIN **
+        const result = await loginUser({
+            email: values.email,
+            password: values.password,
+        });
+
+        // ** GESTIÓN DEL TOKEN (ÉXITO) **
+        // Guardar el token para futuras peticiones (usamos localStorage aquí, aunque cookies HTTP-only es más seguro)
+        localStorage.setItem('accessToken', result.access_token); 
+
+        toast({
+            title: "¡Inicio de Sesión Exitoso!",
+            description: "Has accedido al sistema. Redirigiendo...",
+        });
+
+        // Redirigir al dashboard
+        router.push("/dashboard");
+
+    } catch (error) {
+        // ** MANEJO DE ERRORES **
+        console.error("Error al iniciar sesión:", error);
+        
+        const errorMessage = error instanceof Error 
+            ? error.message 
+            : "Error desconocido al intentar iniciar sesión.";
+        
+        // Mostrar mensaje de error general
+        toast({
+            title: "Error de Autenticación",
+            description: errorMessage,
+            variant: "destructive",
+        });
+
+    } finally {
+        setIsLoading(false); // Detener la carga
+    }
   }
   
   async function handleGoogleSignIn() {
@@ -99,6 +137,7 @@ export default function LoginPage() {
                         id="email"
                         type="email"
                         placeholder="tu@email.com"
+                        disabled={isLoading} // Deshabilitado si está cargando
                         {...field}
                       />
                     </FormControl>
@@ -121,14 +160,20 @@ export default function LoginPage() {
                       </Link>
                     </div>
                     <FormControl>
-                      <Input id="password" type="password" placeholder="••••••••" {...field} />
+                      <Input 
+                        id="password" 
+                        type="password" 
+                        placeholder="••••••••" 
+                        disabled={isLoading} // Deshabilitado si está cargando
+                        {...field} 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full mt-2">
-                Iniciar Sesión
+              <Button type="submit" className="w-full mt-2" disabled={isLoading}>
+                {isLoading ? 'Iniciando Sesión...' : 'Iniciar Sesión'}
               </Button>
             </form>
           </Form>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -18,36 +17,71 @@ import {
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 
+// ** IMPORTAR SERVICIO DE REGISTRO **
+import { registerUser } from "@/services/auth"; 
+
+// 1. Definición del Esquema y Tipado
 const formSchema = z.object({
-  email: z.string().email("Por favor, introduce un correo electrónico válido."),
-  password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres."),
+  email: z.string().email("Correo electrónico no válido."),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres."), 
+  // roles_id es obligatorio a nivel de datos, aunque no se muestre
+  roles_id: z.number().min(1, "El Rol es obligatorio internamente."),
 });
+
+type RegisterFormValues = z.infer<typeof formSchema>;
 
 
 export default function RegisterPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); 
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<RegisterFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
       password: "",
+      // 💥 CRÍTICO: Asignación del valor de Rol (1: Administrador)
+      roles_id: 1, 
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    // Simulate registration
-    console.log("Simulating registration with:", values);
+  async function onSubmit(values: RegisterFormValues) {
+    setIsLoading(true);
     
-    toast({
-      title: "¡Registro exitoso!",
-      description: "Tu cuenta ha sido creada (simulación). ¡Bienvenido!",
-    });
-    router.push("/dashboard");
+    try {
+        // La variable 'values' incluye automáticamente 'roles_id: 1'
+        const successMessage = await registerUser(values); 
+
+        toast({
+            title: "Registro Exitoso",
+            description: successMessage,
+        });
+
+        // Redirigir a Login después de un breve momento
+        setTimeout(() => {
+             router.push("/login");
+        }, 1500);
+
+    } catch (error) {
+        console.error("Error al registrar usuario:", error);
+        
+        const errorMessage = error instanceof Error 
+            ? error.message 
+            : "Error desconocido al intentar registrarse.";
+        
+        toast({
+            title: "Error de Registro",
+            description: errorMessage,
+            variant: "destructive",
+        });
+
+    } finally {
+        setIsLoading(false);
+    }
   }
 
   const togglePasswordVisibility = (e: React.MouseEvent<HTMLSpanElement>) => {
@@ -80,6 +114,12 @@ export default function RegisterPage() {
       
       <div className="w-full lg:w-1/2 lg:mr-[50%] h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 overflow-y-auto min-h-screen">
         <div className="mx-auto grid w-full max-w-md gap-8">
+            <Link href="/" passHref className="justify-self-start">
+                <Button variant="ghost">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Volver al inicio
+                </Button>
+            </Link>
           <div className="grid gap-3 text-center">
             <h1 className="text-3xl font-bold tracking-tight text-primary">Crear una Cuenta</h1>
             <p className="text-muted-foreground">
@@ -88,6 +128,7 @@ export default function RegisterPage() {
           </div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+              {/* Campo Email */}
               <FormField
                 control={form.control}
                 name="email"
@@ -98,6 +139,7 @@ export default function RegisterPage() {
                       <Input
                         type="email"
                         placeholder="tu@email.com"
+                        disabled={isLoading}
                         {...field}
                       />
                     </FormControl>
@@ -105,6 +147,7 @@ export default function RegisterPage() {
                   </FormItem>
                 )}
               />
+              {/* Campo Password (con visibilidad) */}
               <FormField
                 control={form.control}
                 name="password"
@@ -116,6 +159,7 @@ export default function RegisterPage() {
                         <Input 
                           type={showPassword ? "text" : "password"} 
                           placeholder="••••••••" 
+                          disabled={isLoading}
                           {...field} 
                         />
                          <span
@@ -130,8 +174,14 @@ export default function RegisterPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full py-6 text-base font-semibold mt-2">
-                Registrarse
+              {/* 💥 CAMPO ROLES_ID OMITIDO DEL JSX 💥 - Se envía automáticamente con el valor por defecto (1) */}
+              
+              <Button 
+                type="submit" 
+                className="w-full py-6 text-base font-semibold mt-2"
+                disabled={isLoading} 
+              >
+                {isLoading ? 'Registrando...' : 'Registrarse'}
               </Button>
             </form>
           </Form>
