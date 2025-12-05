@@ -79,9 +79,12 @@ export async function loginUser(data: LoginCredentials): Promise<LoginResponse> 
   if (!response.ok) {
     await handleApiError(response);
   }
+  
+  const result = await response.json() as LoginResponse;
+  localStorage.setItem('accessToken', result.access_token);
 
   // Devolver el cuerpo JSON (que debe contener access_token)
-  return response.json() as Promise<LoginResponse>;
+  return result;
 }
 
 /**
