@@ -19,7 +19,7 @@ import { Separator } from "../ui/separator";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { createProtectedUser } from "@/services/users";
+import { createProtectedUser } from "@/services/user-create";
 
 const formSchema = z.object({
   email: z.string().email("Por favor, introduce un correo electrónico válido."),
